@@ -1,12 +1,25 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
-public class Player : MonoBehaviour, IPlayer
+public abstract class Player : MonoBehaviour
 {
-    [SerializeField] private CellValueType cellType;
+    [SerializeField] protected string playerName;
+    [SerializeField] protected CellValueType cellType;
 
-    public string Name { get; private set; }
+    public string Name
+    {
+        get
+        {
+            return playerName;
+        }
+        private set
+        {
+            playerName = value;
+        }
+    }
     public CellValueType CellType
     {
         get
@@ -19,10 +32,12 @@ public class Player : MonoBehaviour, IPlayer
         }
     }
 
-    public void Create(string Name, CellValueType cellType)
+    public void Create(string name, CellValueType cellType)
     {
-        Name = name;
+        this.Name = name;
         this.gameObject.name = Name;
         CellType = cellType;
     }
+
+    protected abstract void Move();
 }

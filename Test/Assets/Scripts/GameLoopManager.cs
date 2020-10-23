@@ -1,52 +1,36 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 
 public class GameLoopManager : Singleton<GameLoopManager>
 {
-    [SerializeField] private bool pvp;
-
-    public bool PlayerVsPlayer => pvp;
+    public event Action OnResetGame;
+    public event Action<Player> OnGameEnd;
 
     public void CreatePVPGame()
     {
-        var playerFirst = new GameObject("Player 1");
-        var playerFirstInfo = playerFirst.AddComponent<Player>();
-        playerFirstInfo.Create("Player 1", CellValueType.xType);
-        ReferenceHolder.Instance.PlayerFirst = playerFirst;
+        CreateBoard();
 
-        var playerSecond = new GameObject("Player 2");
-        var playerSecondInfo = playerSecond.AddComponent<Player>();
-        playerSecondInfo.Create("Player 2", CellValueType.oType);
-        ReferenceHolder.Instance.PlayerSecond = playerSecond;
-
-        var boardOnLevel = Instantiate(ReferenceHolder.Instance.GameSettings.GetRandomBoard(), Vector3.zero, Quaternion.identity);
-        ReferenceHolder.Instance.Board = boardOnLevel;
+        var playerFirst = CreatePlayer<RealPlayer>("Player 1", CellValueType.xType);
+        var playerSecond = CreatePlayer<RealPlayer>("Player 2", CellValueType.oType);
+        if (ReferenceHolder.Instance != null) ReferenceHolder.Instance.SetCurrentPlayers(playerFirst, playerSecond);
 
         GameStateManager.Instance.ChangeState(GameState.PlayerFirstMove);
     }
 
     public void CreatePVEGame()
     {
-        var playerFirst = new GameObject("Player 1");
-        var playerFirstInfo = playerFirst.AddComponent<Player>();
-        playerFirstInfo.Create("Player 1", CellValueType.xType);
-        ReferenceHolder.Instance.PlayerFirst = playerFirst;
+        CreateBoard();
 
-        var playerSecond = new GameObject("Player 2");
-        var playerSecondInfo = playerSecond.AddComponent<Player>();
-        playerSecondInfo.Create("Player 2", CellValueType.oType);
-        ReferenceHolder.Instance.PlayerSecond = playerSecond;
+        var playerFirst = CreatePlayer<RealPlayer>("Player 1", CellValueType.xType);
+        var playerSecond = CreatePlayer<AIPlayer>("AI Player", CellValueType.oType);
+        if (ReferenceHolder.Instance != null) ReferenceHolder.Instance.SetCurrentPlayers(playerFirst, playerSecond);
 
-        var boardOnLevel = Instantiate(ReferenceHolder.Instance.GameSettings.GetRandomBoard(), Vector3.zero, Quaternion.identity);
-        ReferenceHolder.Instance.Board = boardOnLevel;
+        GameStateManager.Instance.ChangeState(GameState.PlayerFirstMove);
     }
 
-    public void FinishGame()
+    public void ResetGame()
     {
-        Destroy(ReferenceHolder.Instance.PlayerFirst);
-        Destroy(ReferenceHolder.Instance.PlayerSecond);
-        Destroy(ReferenceHolder.Instance.Board);
+        OnResetGame?.Invoke();
 
         StartGame();
     }
@@ -59,5 +43,29 @@ public class GameLoopManager : Singleton<GameLoopManager>
     private void StartGame()
     {
         GameStateManager.Instance.ChangeState(GameState.StartMenu);
+    }
+
+    private void GameEnded(Player player)
+    {
+        OnGameEnd?.Invoke(player);
+        GameStateManager.Instance.ChangeState(GameState.EndGame);
+    }
+    private void CreateBoard()
+    {
+        var boardOnLevel = Instantiate(ReferenceHolder.Instance.GameSettings.GetRandomBoard(), Vector3.zero, Quaternion.identity);
+        if (ReferenceHolder.Instance != null)
+        {
+            ReferenceHolder.Instance.SetCurrentBoard(boardOnLevel);
+            ReferenceHolder.Instance.Board.OnGameEnded += GameEnded;
+        }
+    }
+
+    private GameObject CreatePlayer<T>(string name, CellValueType cellType) where T : Player
+    {
+        var player = new GameObject(name);
+        var playerInfo = player.AddComponent<T>();
+        playerInfo.Create(name, cellType);
+
+        return player;
     }
 }

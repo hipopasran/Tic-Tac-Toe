@@ -1,9 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public interface IBoard
 {
-    IPlayer winner { get; }
+    event Action<Player> OnGameEnded;
     IList<Cell> GetEmptyCells();
+
+    void CheckCurrentBoardState(int result, Player player, GameState lastState);
 }

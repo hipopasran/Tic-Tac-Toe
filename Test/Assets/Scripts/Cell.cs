@@ -7,7 +7,7 @@ using UnityEngine;
 public enum RawTypeCheck
 {
     Vertical, // "|"
-    Horizontal, // "-"
+    Horizontal, // "—"
     UpLeftRightDiagonal, // "\"
     UpRightLeftDiagonal // "/"
 }
@@ -21,9 +21,6 @@ public enum CellValueType
 
 public class Cell : MonoBehaviour, ICell
 {
-    public event Action<IPlayer> OnPlayerWin;
-    public event Action OnEndOfMove;
-
     private int result;
     private int tempResult;
 
@@ -42,14 +39,15 @@ public class Cell : MonoBehaviour, ICell
     public CellValueType CellType { get; private set; }
     public bool IsFull { get; private set; }
 
-    public void Fill(IPlayer player)
+    public void Fill(Player player)
     {
+        result = 0;
         var tempState = GameStateManager.Instance.State;
         GameStateManager.Instance.ChangeState(GameState.MoveProcess);
         CellType = player.CellType;
         IsFull = true;
 
-        var value = ReferenceHolder.Instance.GameSettings?.GetPrefabByType(CellType);
+        var value = ReferenceHolder.Instance.GameSettings.GetPrefabByType(CellType);
         var valueOnScene = Instantiate(value, valueSpawnPosition.position, valueSpawnPosition.rotation);
         valueOnScene.transform.SetParent(valueSpawnPosition);
 
@@ -62,30 +60,7 @@ public class Cell : MonoBehaviour, ICell
         tempResult = Check(this, RawTypeCheck.UpRightLeftDiagonal);
         result = tempResult > result ? tempResult : result;
 
-        Debug.Log(result);
-
-        if (result >= 3)
-        {
-            OnPlayerWin?.Invoke(player);
-        }
-
-        if(board.GetEmptyCells().Count == 0)
-        {
-            GameStateManager.Instance.ChangeState(GameState.EndGame);
-        }
-        else
-        {
-            if(tempState == GameState.PlayerFirstMove)
-            {
-                GameStateManager.Instance.ChangeState(GameState.PlayerSecondMove);
-                Debug.Log("Second Player");
-            }
-            else if(tempState == GameState.PlayerSecondMove)
-            {
-                GameStateManager.Instance.ChangeState(GameState.PlayerFirstMove);
-                Debug.Log("First Player");
-            }
-        }
+        board.CheckCurrentBoardState(result, player, tempState);
     }
 
 
@@ -96,14 +71,19 @@ public class Cell : MonoBehaviour, ICell
             return;
         }
 
+        if(GameStateManager.Instance.State != GameState.PlayerFirstMove && GameStateManager.Instance.State != GameState.PlayerSecondMove)
+        {
+            return;
+        }
+
         var currentState = GameStateManager.Instance.State;
         if(currentState == GameState.PlayerFirstMove)
         {
-            Fill(ReferenceHolder.Instance.PlayerFirst.GetComponent<IPlayer>());
+            Fill(ReferenceHolder.Instance.PlayerFirst.GetComponent<Player>());
         }
         else if( currentState == GameState.PlayerSecondMove)
         {
-            Fill(ReferenceHolder.Instance.PlayerSecond.GetComponent<IPlayer>());
+            Fill(ReferenceHolder.Instance.PlayerSecond.GetComponent<Player>());
         }
         else
         {

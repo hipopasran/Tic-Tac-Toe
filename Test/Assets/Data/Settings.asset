@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7ee1b19353473143a16f91efc321e47, type: 3}
   m_Name: Settings
   m_EditorClassIdentifier: 
+  WinString: ' Won!'
+  DrawString: Draw! No Empty Cell!
   X: {fileID: 8786197159012520039, guid: 596067ff518900e48a587602a4516f4a, type: 3}
   O: {fileID: 7666221791468775524, guid: 681864b5c79388041ae14e58e112c065, type: 3}
   Boards:
