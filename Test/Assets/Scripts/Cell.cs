@@ -2,10 +2,10 @@
 
 public enum RawTypeCheck
 {
-    Vertical, // "|"
-    Horizontal, // "—"
-    UpLeftRightDiagonal, // "\"
-    UpRightLeftDiagonal // "/"
+    Vertical,               // "|"
+    Horizontal,             // "—"
+    UpLeftRightDiagonal,    // "\"
+    UpRightLeftDiagonal     // "/"
 }
 
 public enum CellValueType
